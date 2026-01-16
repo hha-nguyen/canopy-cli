@@ -27,3 +27,8 @@ Thumbs.db
 
 # Build artifacts
 dist/
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
