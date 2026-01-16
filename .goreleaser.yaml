@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: canopy
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: .
+    binary: canopy
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+brews:
+  - name: canopy
+    repository:
+      owner: hha-nguyen
+      name: homebrew-canopy-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/hha-nguyen/canopy-cli"
+    description: "CLI for Canopy mobile app policy compliance scanner"
+    license: "MIT"
+    install: |
+      bin.install "canopy"
+    test: |
+      system "#{bin}/canopy", "version"
+
+release:
+  github:
+    owner: hha-nguyen
+    name: canopy-cli
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
